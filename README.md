@@ -112,7 +112,8 @@ terraform apply -target="aws_ecr_repository.app" -auto-approve
 # 2. Authenticate Docker with AWS ECR
 $ACCOUNT_ID = (aws sts get-caller-identity --query Account --output text)
 $REGION = "us-east-1"
-aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
+$password = aws ecr get-login-password --region $REGION
+docker login -u AWS -p $password "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
 
 # 3. Build, Tag & Push Docker Image
 docker build -t cloud-app-platform-app ../app
