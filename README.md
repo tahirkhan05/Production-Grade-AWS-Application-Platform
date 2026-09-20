@@ -105,7 +105,7 @@ Terraform will calculate an execution plan detailing all VPC, subnets, security 
 Before deploying ECS, create the ECR repository and push our container image:
 ```bash
 # 1. Provision ECR repository
-terraform apply -target=aws_ecr_repository.app -auto-approve
+terraform apply -target="aws_ecr_repository.app" -auto-approve
 
 # 2. Authenticate Docker with AWS ECR
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
