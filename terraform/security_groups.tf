@@ -1,4 +1,20 @@
-# 1. ALB Security Group (Public facing entry point)
+# ==============================================================================
+# AWS SECURITY GROUPS (VIRTUAL FIREWALLS)
+# ==============================================================================
+# Security Groups act as stateful firewalls controlling inbound (ingress) and
+# outbound (egress) network traffic at the resource level.
+#
+# Best Practice: "Defense-in-Depth" & "Least Privilege"
+# Instead of opening ports to all IP addresses, we chain security groups together!
+# Internet -> ALB SG (port 80) -> ECS SG (port 8000) -> RDS SG (port 5432)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Application Load Balancer Security Group
+# ------------------------------------------------------------------------------
+# - INGRESS: Allows public HTTP traffic (Port 80) from anywhere in the world (0.0.0.0/0).
+# - EGRESS: Allows outbound traffic to forward user requests to our ECS containers.
+# ------------------------------------------------------------------------------
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-alb-sg"
   description = "Security group for internet-facing Application Load Balancer"
@@ -13,7 +29,7 @@ resource "aws_security_group" "alb" {
   }
 
   egress {
-    description = "Allow all outbound to private app tier"
+    description = "Allow all outbound traffic to private app tier"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -25,7 +41,14 @@ resource "aws_security_group" "alb" {
   }
 }
 
+# ------------------------------------------------------------------------------
 # 2. ECS Fargate Application Security Group
+# ------------------------------------------------------------------------------
+# - INGRESS: Allows Port 8000 STRICTLY from the ALB Security Group (security_groups = [aws_security_group.alb.id]).
+#   Even if a computer inside the VPC tries to connect on port 8000, it is rejected unless
+#   it comes from the ALB!
+# - EGRESS: Allows outbound traffic (to pull images from ECR, reach Secrets Manager, and talk to RDS).
+# ------------------------------------------------------------------------------
 resource "aws_security_group" "ecs_app" {
   name        = "${var.project_name}-ecs-app-sg"
   description = "Security group for ECS tasks - only accepts traffic from ALB"
@@ -52,7 +75,13 @@ resource "aws_security_group" "ecs_app" {
   }
 }
 
-# 3. RDS PostgreSQL Security Group
+# ------------------------------------------------------------------------------
+# 3. RDS PostgreSQL Database Security Group
+# ------------------------------------------------------------------------------
+# - INGRESS: Allows PostgreSQL Port 5432 STRICTLY from the ECS App Security Group.
+#   Nobody on the internet, and no other service in the cloud, can talk to PostgreSQL!
+# - EGRESS: Databases don't need to initiate outbound connections, so this is minimal.
+# ------------------------------------------------------------------------------
 resource "aws_security_group" "rds" {
   name        = "${var.project_name}-rds-sg"
   description = "Security group for RDS PostgreSQL - only accepts traffic from ECS App SG"

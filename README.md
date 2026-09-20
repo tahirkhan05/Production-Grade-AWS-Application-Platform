@@ -59,6 +59,7 @@ The architecture deploys a containerized **FastAPI** microservice backed by **Am
 │
 ├── docs/                       # Engineering Documentation & Portfolio Assets
 │   ├── architecture.png        # High-definition visual architecture diagram
+│   ├── LEARNING_GUIDE.md       # 📘 Complete beginner guide & interview notes
 │   ├── architecture.md         # Deep-dive network & security specification
 │   ├── runbook.md              # Operations, failure simulation & testing runbook
 │   └── ADR.md                  # Architecture Decision Records
