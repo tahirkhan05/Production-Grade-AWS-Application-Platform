@@ -102,7 +102,25 @@ Terraform will calculate an execution plan detailing all VPC, subnets, security 
 ---
 
 ### Step 3: Build & Push Initial Container Image to AWS ECR
-Before deploying ECS, create the ECR repository and push our container image:
+Before deploying ECS, create the ECR repository and push our container image.
+
+#### 🪟 Windows (PowerShell):
+```powershell
+# 1. Provision ECR repository
+terraform apply -target="aws_ecr_repository.app" -auto-approve
+
+# 2. Authenticate Docker with AWS ECR
+$ACCOUNT_ID = (aws sts get-caller-identity --query Account --output text)
+$REGION = "us-east-1"
+aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
+
+# 3. Build, Tag & Push Docker Image
+docker build -t cloud-app-platform-app ../app
+docker tag cloud-app-platform-app:latest "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/cloud-app-platform-app:latest"
+docker push "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/cloud-app-platform-app:latest"
+```
+
+#### 🐧 Linux / macOS (Bash):
 ```bash
 # 1. Provision ECR repository
 terraform apply -target="aws_ecr_repository.app" -auto-approve
